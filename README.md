@@ -15,12 +15,12 @@ ui.Dialog({})
 ```bash
 npm i yao-m-ui --save
 
-var ui = require('yao-m-ui')
+var ui = require('yao-m-ui')
 
 ui.Dialog({})
 ```
 
-或者直接script 标签引入 npm包目录下的index.js
+或者直接script 标签引入 npm包目录下的index.js
 
 ```js
 
@@ -40,7 +40,7 @@ ui.Dialog(options)
 
 - `className` 最为组件root 标签下传入的css class名称, 业务中定制化组件需要在此重写
 
-- `afterOpen` 代码片段render到body中就调用
+- `afterOpen` 代码片段render到body中就调用
 
 - `afterClose` 一般是点击关闭, 取消等行为,会首先调用,
 
@@ -65,13 +65,13 @@ ui.showPrompt(options)
 
 - `msg`  弹出的消息
 
-- `cb`   弹框消失后调用,一般是一个callBack function;
+- `cb`   弹框消失后调用,一般是一个callBack function;
 
 - `duration` 弹框显示的时长,默认为3秒
 
 - `className` 定制化用到的class name
 
-### 滑动组件
+### 滑动组件
 
 ui.easyMove(element, options) 滑动组件,类似于swiper
 
