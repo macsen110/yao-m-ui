@@ -1,0 +1,74 @@
+.widget-dialog {
+  position: absolute;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+.widget-dialog .dialog-mask-bg {
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+.widget-dialog .main {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  width: 80%;
+  background-color: #fff;
+  text-align: center;
+  border-radius: 2px;
+  -webkit-transform: translate3d(-50%, -50%, 0);
+  -ms-transform: translate3d(-50%, -50%, 0);
+  transform: translate3d(-50%, -50%, 0);
+}
+.widget-dialog .title {
+  padding: 12px 0;
+}
+.widget-dialog .content {
+  padding: 0 16px 10px;
+}
+.widget-dialog .foot {
+  height: 36px;
+  border-top: 1px solid #dcdddd;
+  display: -webkit-box;
+  display: flex;
+  overflow: hidden;
+}
+.widget-dialog .foot button {
+  display: block;
+  height: 100%;
+  font-size: 12px;
+  -webkit-box-flex: 1;
+  flex: 1;
+  width: 100%;
+  color: #01a0e4;
+  border: 0 none;
+  background: none;
+}
+.widget-dialog .foot button:nth-of-type(2) {
+  border-left: 1px solid #dcdddd;
+}
+.widget-prompt {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 55%;
+  padding: 10px;
+  box-sizing: border-box;
+  -webkit-transform: translate3d(-50%, -50%, 0);
+  -ms-transform: translate3d(-50%, -50%, 0);
+  transform: translate3d(-50%, -50%, 0);
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 4px;
+  color: #fff;
+  font-size: 14px;
+  text-align: center;
+  z-index: 101;
+}
