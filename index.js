@@ -6,7 +6,7 @@
 			define(factory);
 	} 
 	else {
-			win.yaoMUI = factory();
+			win.eventUtil = factory();
 	}
 })(this, function () {
 	//module ...
@@ -38,12 +38,11 @@
 			init: function () {
 					var self = this;
 					self.change(this.curIdex);
+					var className = this.tabNavContainer.children[0].classList[0];
 					if (self.tabNavItems) {
-							[].forEach.call(self.tabNavItems, function (item, index) {
-									item.addEventListener('click', function () {
-											self.change(index);				
-									})
-							})            
+							_degegateDomFun(this.tabNavContainer, '.'+className, 'click', function () {
+								self.change([].indexOf.call(self.tabNavItems, this))
+							})
 					}
 			},
 			change: function(index) {
@@ -163,11 +162,10 @@
 					}
 			}
 	};
-		
-	/**
-	 * *easy Move
-	 * *页面滑动插件
-	 * *******/
+    /**
+     * *easy Move
+     * *页面滑动插件
+     * *******/
 	function easyMove (element, options) {
 		var isTouch = 'ontouchstart' in window;
 		if (!element) return null; 
@@ -291,7 +289,7 @@
 			//纵向
 			if (self.orientation == 2 && Math.abs(self.deltaY) > Math.abs(self.deltaX)) {
 				e.preventDefault();
-				if (!self.hasMoved) self.touchMoveCb &&  self.touchMoveCb(self.index)   
+                if (!self.hasMoved) self.touchMoveCb &&  self.touchMoveCb(self.index)   
 				self.element.style.MozTransform = self.element.style.webkitTransform = 'translate3d(0,' + (self.deltaY - (self.index-self.focusIndex) * self.childHeight) + 'px,0)';
 			}
 			self.hasMoved = true;
@@ -403,11 +401,10 @@
 			this.promptTimer = setTimeout(function(){
 					this.destory();
 					if (this.cb) this.cb()
-			}.bind(this), this.duration || 3000);
+			}.bind(this),3000);
 		},
 		destory: function () {
-			if (!this._container) return false;
-			this._container.parentNode && this._container.parentNode.removeChild(this._container)
+			this._container.parentNode.removeChild(this._container)
 			this._container = null;
 		}
 	}
@@ -439,11 +436,60 @@
 			this._container && (this._container.style.display = 'none');
 		}
 	}
+
+
+	/**
+	 * private fun
+	 * delegate fun
+	 */
+	function _degegateDomFun(parentEle, selector, eventType, fun) {
+		parentEle.addEventListener(eventType, function (e) {
+			var targetDom = _getDomByEle(e.target, selector)
+			if (targetDom) fun.bind(targetDom)()
+		})
+	}
+	/**
+	 * getDombyEle
+	 */
+	function _getDomByEle(curentEl, selector) {
+		var sign = selector[0];
+		function getId() {
+			while (curentEl) {
+				if (curentEl.id === selector.slice(1)) return curentEl
+					curentEl = curentEl.parentNode;
+			}
+			return undefined
+		}
+		function getClass() {
+			while (curentEl) {
+				if (curentEl.classList && curentEl.classList.contains(selector.slice(1))) return curentEl;
+				curentEl = curentEl.parentNode;
+			}
+			return undefined
+		}
+		function getEleName() {
+			while (curentEl) {
+				if (curentEl.tagName === selector.toUpperCase()) return curentEl;
+				curentEl = curentEl.parentNode;
+			}
+			return undefined
+		}
+		switch (sign) {
+			case '.':
+			return getClass()
+			case '#':
+			return getId()
+			default:        
+			return getEleName();
+		}
+	};
+	
 	return {
 			TabWidget: function (args) {return new TabWidget(args)},
 			Dialog: function (args) {return new Dialog(args)},
 			easyMove: function (dom, args) { return new easyMove(dom, args)},
 			showPrompt: function (args) {return new showPrompt(args)},
 			Loading: function (args) { return new Loading(args) },
+			
 	}
 })
