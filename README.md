@@ -96,6 +96,9 @@ ui.easyMove(element, options) 滑动组件,类似于swiper
 
     - `callback` 动画完成后的回调
 
+    - `autoMove` 是否需要自动播放
+    - `paginationList` 底部导航dom,当前滚动下标对应的class为active
+
 
 ### Tab切换 
 ui.tab(options)
@@ -103,7 +106,9 @@ ui.tab(options)
 
 * `tabConContainer`  //default as '.tab-con-container'
 
+使用了事件代理,异步添加的nav 也会默认增加切换事件
 
+Demo地址 
 Contact 
 
 * email 839945193@qq.com or liangyusen1202@gmail.com

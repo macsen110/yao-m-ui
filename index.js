@@ -1,3 +1,8 @@
+//import { setTimeout } from "core-js/library/web/timers";
+
+// import { setInterval } from "core-js/library/web/timers";
+// import { clearInterval } from "timers";
+
 (function (win, factory) {
 	if (typeof exports === 'object') {
 			module.exports = factory();
@@ -171,10 +176,25 @@
 		if (!element) return null; 
 		this.element = element;
 		this.parentEle = options.parentEle || this.element;
+		this.autoPlay = options.autoPlay;
+		this.paginationList = options.paginationList;
+		this.moveDomArr = [];
+		this.originLength = element.children.length;
+		if (this.autoPlay) {
+			for (var i = 0; i < this.originLength; i++) {
+				this.moveDomArr[i+1] = i;
+			}
+			this.moveDomArr[0] = this.originLength -1;
+			this.moveDomArr[this.originLength+1] = 0;
+			this.appendDom();
+		//	self._autoPlay()
+			this.index = this.moveDomArr.indexOf(self.index);
+		}
 		this.child = element.children[0]; //选取一个子元素,以便可以随时获取其宽度
 		this.length = element.children.length;
 		this.focusIndex = options.focusIndex || 0;
 		this.index = options.index || 0; //初始选中元素序号
+		
 		this.speed = options.speed || 300; //矫正动画时间ms
 		this.offset = options.offset || 0; //选中点偏移
 		this.limitBorder = options.limitBorder || false; //滑动后是否会回顶到边界，优先级高于offset
@@ -186,6 +206,7 @@
 		this.hasMoved = false; //是否触发过onTouchMove，用以区分点击与滑动
 		this.orientation = options.orientation || 1; //滑动的方向,1为横向, 2为纵向
 		this.distance = options.distance;//自定义滑动距离,
+		this.autoPlay = options.autoPlay;
 		if (this.parentEle.addEventListener) {
 			this.parentEle.addEventListener(isTouch?'touchstart':'mousedown', this, false);
 			this.element.addEventListener('webkitTransitionEnd', this, false);
@@ -200,11 +221,12 @@
 			this.childHeight = options.childHeight || this.child.clientHeight;
 			this.parentHeight = options.parentHeight || this.childHeight * this.length;
 		}
-		this.init();
+		setTimeout(this.init.bind(this), 1000);
 	}
 	easyMove.prototype = {
 		constructor: easyMove,
 		init: function () {
+
 			var self = this;
 			//设置item和container的宽度
 			[].forEach.call(self.element.children, function (item) {
@@ -213,10 +235,19 @@
 			})
 			if (self.orientation == 1) self.element.style.width = self.parentWidth + 'px';
 			else self.element.style.height = self.parentHeight + 'px';
-            
 			if (self.orientation == 1) self.element.style.MozTransform = self.element.style.webkitTransform = 'translate3d(' + (-(self.index-self.focusIndex) * self.childWidth) + 'px,0,0)';
 			if (self.orientation == 2) self.element.style.MozTransform = self.element.style.webkitTransform = 'translate3d(0,' + (-(self.index-self.focusIndex) * self.childHeight) + 'px,0)';
+			
+			
 			self.move(self.index)
+		},
+		appendDom: function () {
+			var firstDom = this.element.children[0];
+			var firstDomClone = firstDom.cloneNode(true);
+			var lastDom = this.element.children[this.element.children.length - 1];
+			var lastDomClone = lastDom.cloneNode(true);
+			this.element.appendChild(firstDomClone);
+			this.element.insertAdjacentElement('afterbegin',lastDomClone);
 		},
 		handleEvent: function (e) {
 			var self = this;
@@ -265,12 +296,15 @@
 		},
 		onTouchStart: function (e) {
 			var self = this;
+			this.clearAutoPlay()
+			
 			self.start = {
 				pageX: e.touches[0].pageX,
 				pageY: e.touches[0].pageY
 			};
 			//将动画时间设为0，以便在按下时马上结束尚在进行的动画
 			self.element.style.webkitTransition = "-webkit-transform 0ms";
+			this.touchStartResetTargetIndex(this.index);
 		},
 		onTouchMove: function (e) {
 			var self = this;
@@ -289,7 +323,7 @@
 			//纵向
 			if (self.orientation == 2 && Math.abs(self.deltaY) > Math.abs(self.deltaX)) {
 				e.preventDefault();
-                if (!self.hasMoved) self.touchMoveCb &&  self.touchMoveCb(self.index)   
+				if (!self.hasMoved) self.touchMoveCb &&  self.touchMoveCb(self.index)   
 				self.element.style.MozTransform = self.element.style.webkitTransform = 'translate3d(0,' + (self.deltaY - (self.index-self.focusIndex) * self.childHeight) + 'px,0)';
 			}
 			self.hasMoved = true;
@@ -339,13 +373,17 @@
 				var choseId = self.index + self.offset;
 				self.callback(self.index);
 			}
+			if (self.autoPlay) self._autoPlay()
 		},
 		transitionEnd: function (e) {
 			var self = this;
+			this.filterPagination(this.index)
 		},
 		autoMove: function (targetIndex) {
+			
 			var self = this;
 			var style = this.element.style;
+			
 			//var width = self.childWidth;
 			style.webkitTransition = "-webkit-transform "+self.speed+"ms";
 			if (self.orientation == 1) style.MozTransform = style.webkitTransform = 'translate3d(' + (-targetIndex * self.childWidth) + 'px,0,0)';
@@ -356,15 +394,18 @@
 			var self = this;
 			targetIndex -= self.offset; 
 			targetIndex = self.limitIndex(targetIndex);
-			var style = this.element.style;
-			style.webkitTransition = "-webkit-transform "+self.speed+"ms";
-			if (self.orientation == 1) style.MozTransform = style.webkitTransform = 'translate3d(' + (-targetIndex * self.childWidth) + 'px,0,0)';
-			if (self.orientation == 2) style.MozTransform = style.webkitTransform = 'translate3d(0,' + (-targetIndex * self.childHeight) + 'px,0)';
+			var style = this.element.style;	
+			setTimeout(function () {		
+				style.webkitTransition = "-webkit-transform "+self.speed+"ms";
+				if (self.orientation == 1) style.MozTransform = style.webkitTransform = 'translate3d(' + (-targetIndex * self.childWidth) + 'px,0,0)';
+				if (self.orientation == 2) style.MozTransform = style.webkitTransform = 'translate3d(0,' + (-targetIndex * self.childHeight) + 'px,0)';
+			}, 0)
 			self.index = targetIndex + self.focusIndex;
 			if (self.callback) self.callback(self.index);
 		},
 		limitIndex: function (targetIndex) {
 			var self = this;
+			if (this.autoMove && targetIndex == this.length) targetIndex = this.autoMoveResetTargetIndex()
 			if (!self.limitBorder) {
 				if (targetIndex < -self.offset) targetIndex = -self.offset;	
 				else if (targetIndex > self.length - 1 - self.offset) targetIndex = self.length - 1 - self.offset;
@@ -373,8 +414,46 @@
 				if (targetIndex < 0) targetIndex = 0;
 				else if ((targetIndex > self.length - self.showNum + self.focusIndex)) targetIndex = self.length -(self.showNum - self.focusIndex);
 			}
-			return targetIndex - self.focusIndex;
-		}
+			targetIndex = targetIndex - self.focusIndex;
+			return targetIndex;
+		},
+		autoMoveResetTargetIndex: function (targetIndex) {
+			var self = this;
+			self.resetTransformStyle(1)
+			self.index = targetIndex = 2;
+			return targetIndex
+		},
+		resetTransformStyle: function (idx) {
+			var self = this;
+			var style = this.element.style;
+			style.MozTransform = style.webkitTransform = 'translate3d(' + (-idx * self.childWidth) + 'px,0,0)';
+			style.webkitTransition = "-webkit-transform "+0+"ms";
+		},
+		touchStartResetTargetIndex: function (index) {
+			if (index == 0) { 
+				this.resetTransformStyle(this.length-2) 
+				this.index = this.length-2;
+			}
+			if (index === this.length -1 ) {
+				this.resetTransformStyle(1)
+				this.index = 1;
+			}
+			
+		},
+		clearAutoPlay: function() {
+			clearInterval(this.autoPlayId)
+		},
+		_autoPlay: function () {
+			this.autoPlayId = setInterval(function () {this.move(this.index + 1)}.bind(this), 2000)
+		},
+		filterPagination: function (index) {
+			var curPaginationIndex = this.moveDomArr[index];
+			[].forEach.call(this.paginationList.children, function (item, index) {
+				item.classList.remove('active');
+				if (index === curPaginationIndex) item.classList.add('active')
+			})
+		},
+
 	}
 
 	function showPrompt(args) {
