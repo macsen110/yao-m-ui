@@ -16,7 +16,7 @@
   background-color: rgba(0, 0, 0, 0.3);
 }
 .widget-dialog .main {
-  position: absolute;
+  position: fixed;
   z-index: 2;
   top: 50%;
   left: 50%;

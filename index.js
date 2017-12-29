@@ -11,7 +11,7 @@
 			define(factory);
 	} 
 	else {
-			win.eventUtil = factory();
+			win.YAO_M_UI = factory();
 	}
 })(this, function () {
 	//module ...
@@ -32,9 +32,10 @@
 		}
 		this.tabNavContainer = this.tabNavContainer || document.querySelector('.tab-nav-container');
 		this.tabConContainer = this.tabConContainer || document.querySelector('.tab-con-container');
-		this.tabNavContainer && (this.tabNavItems = this.tabNavItems || this.tabNavContainer.children);
-		this.tabConContainer && (this.tabConItems = this.tabConItems || this.tabConContainer.children);
+		this.tabNavItems = this.tabNavItems || this.tabNavContainer.children;
+		this.tabConItems = this.tabConItems || this.tabConContainer.children;
 		this.curIdex = this.curIdex || 0;
+		this.activeClass = this.activeClass || 'on'
 		this.init()
 	}
 
@@ -43,7 +44,7 @@
 			init: function () {
 					var self = this;
 					self.change(this.curIdex);
-					var className = this.tabNavContainer.children[0].classList[0];
+					var className = this.tabNavItems[0].classList[0];
 					if (self.tabNavItems) {
 							_degegateDomFun(this.tabNavContainer, '.'+className, 'click', function () {
 								self.change([].indexOf.call(self.tabNavItems, this))
@@ -52,24 +53,25 @@
 			},
 			change: function(index) {
 					var self = this;
+					var activeClass = this.activeClass;
 					self.curIdex = index;
 					if (self.tabNavItems) {
 							[].forEach.call(self.tabNavItems, function (item, i) {
 									if (i !== index) {
-											item.classList.remove('on');
-											self.tabConItems[i].classList.remove('on')
+											item.classList.remove(activeClass);
+											self.tabConItems[i].classList.remove(activeClass)
 									}
 									else {
-											item.classList.add('on');
-											self.tabConItems[i].classList.add('on')
+											item.classList.add(activeClass);
+											self.tabConItems[i].classList.add(activeClass)
 									}
 							})
 
 					}
 					else {
 							[].forEach.call(self.tabConItems, function (item, i) {
-									if (i !== index) item.classList.remove('on')
-									else item.classList.add('on')
+									if (i !== index) item.classList.remove(activeClass)
+									else item.classList.add(activeClass)
 							})
 							
 					} 
@@ -132,7 +134,7 @@
 					this.foot = this.foot ? '<div class="foot">' + this.foot + '</div>' : ''; 
 					this.main = this.title + this.content + this.foot;
 					this.container.innerHTML = '<div class="main">' + this.main + '</div>' + this.mask;
-					var body = document.body;
+					var body = this.parentNode || document.body;
 					var self = this;
 					body.appendChild(this.container);
 					//remeber do not write like this
@@ -160,7 +162,7 @@
 					//do something after the dialog close;
 			},
 			destory: function () {
-					var body = document.body;
+					var body = this.parentNode || document.body;
 					if (this.container) {
 							body.removeChild(this.container);
 							this.container = null;
@@ -180,6 +182,8 @@
 		this.paginationList = options.paginationList;
 		this.moveDomArr = [];
 		this.originLength = element.children.length;
+		this.index = options.index ? options.index : 0;
+		this.duration = options.duration || 2000
 		if (this.autoPlay) {
 			for (var i = 0; i < this.originLength; i++) {
 				this.moveDomArr[i+1] = i;
@@ -187,14 +191,11 @@
 			this.moveDomArr[0] = this.originLength -1;
 			this.moveDomArr[this.originLength+1] = 0;
 			this.appendDom();
-		//	self._autoPlay()
-			this.index = this.moveDomArr.indexOf(self.index);
+			this.index = this.index + 1;
 		}
 		this.child = element.children[0]; //选取一个子元素,以便可以随时获取其宽度
 		this.length = element.children.length;
-		this.focusIndex = options.focusIndex || 0;
-		this.index = options.index || 0; //初始选中元素序号
-		
+		this.focusIndex = options.focusIndex || 0;		
 		this.speed = options.speed || 300; //矫正动画时间ms
 		this.offset = options.offset || 0; //选中点偏移
 		this.limitBorder = options.limitBorder || false; //滑动后是否会回顶到边界，优先级高于offset
@@ -206,7 +207,7 @@
 		this.hasMoved = false; //是否触发过onTouchMove，用以区分点击与滑动
 		this.orientation = options.orientation || 1; //滑动的方向,1为横向, 2为纵向
 		this.distance = options.distance;//自定义滑动距离,
-		this.autoPlay = options.autoPlay;
+
 		if (this.parentEle.addEventListener) {
 			this.parentEle.addEventListener(isTouch?'touchstart':'mousedown', this, false);
 			this.element.addEventListener('webkitTransitionEnd', this, false);
@@ -226,7 +227,6 @@
 	easyMove.prototype = {
 		constructor: easyMove,
 		init: function () {
-
 			var self = this;
 			//设置item和container的宽度
 			[].forEach.call(self.element.children, function (item) {
@@ -237,9 +237,9 @@
 			else self.element.style.height = self.parentHeight + 'px';
 			if (self.orientation == 1) self.element.style.MozTransform = self.element.style.webkitTransform = 'translate3d(' + (-(self.index-self.focusIndex) * self.childWidth) + 'px,0,0)';
 			if (self.orientation == 2) self.element.style.MozTransform = self.element.style.webkitTransform = 'translate3d(0,' + (-(self.index-self.focusIndex) * self.childHeight) + 'px,0)';
-			
-			
 			self.move(self.index)
+			self.paginationList && self.filterPagination(self.index)
+			if (this.autoPlay) self._autoPlay()
 		},
 		appendDom: function () {
 			var firstDom = this.element.children[0];
@@ -296,23 +296,23 @@
 		},
 		onTouchStart: function (e) {
 			var self = this;
-			this.clearAutoPlay()
-			
+			if (this.autoMove) this.clearAutoPlay()
 			self.start = {
-				pageX: e.touches[0].pageX,
-				pageY: e.touches[0].pageY
+				pageX: e.touches ? e.touches[0].pageX : e.pageX,
+				pageY: e.touches ? e.touches[0].pageY : e.pageY
 			};
 			//将动画时间设为0，以便在按下时马上结束尚在进行的动画
 			self.element.style.webkitTransition = "-webkit-transform 0ms";
-			this.touchStartResetTargetIndex(this.index);
+			self.autoPlay && self.touchStartResetTargetIndex(this.index);
 		},
 		onTouchMove: function (e) {
 			var self = this;
-            
 			//若有多个touch或者被缩放则不滑动		
-			if(e.touches.length > 1 || e.scale && e.scale !== 1) return;
-			self.deltaX = e.touches[0].pageX - self.start.pageX;
-			self.deltaY = e.touches[0].pageY - self.start.pageY;
+			if(e.touches && (e.touches.length > 1 || e.scale && e.scale !== 1)) return;
+			var movePageX = e.touches ? e.touches[0].pageX : e.pageX;
+			var movePageY = e.touches ? e.touches[0].pageY : e.pageY;
+			self.deltaX = movePageX - self.start.pageX;
+			self.deltaY = movePageY - self.start.pageY;
 			//判断滑动方向
 			//横向
 			if (self.orientation == 1 && Math.abs(self.deltaX) > Math.abs(self.deltaY)) {
@@ -331,6 +331,7 @@
 		},
 		onTouchEnd: function (e) {
 			var self = this;
+			
 			if (!self.hasMoved) {
 				if (self.orientation == 1)  self.deltaX = 0; //若没有滑动过，重置值
 				if (self.orientation == 2) self.deltaY = 0
@@ -353,21 +354,26 @@
 					
 			}
 			if (self.orientation == 2) {
+				
+
 					var height = self.childHeight;
 					var targetIndex;
 					if (self.distance) {
 							var remainderDistance = self.deltaY - parseInt(self.deltaY/height) * height;
+							
 							if (remainderDistance > 0) {
 									targetIndex = self.index - (parseInt(self.deltaY/height) + (remainderDistance - self.distance > 0 ? 1 : 0));
 							}
 							else {
+									
 									targetIndex = self.index - (parseInt(self.deltaY/height) + (Math.abs(remainderDistance) - self.distance > 0 ? -1 : 0));
 							} 
 					}
 					else targetIndex = self.index - Math.round(self.deltaY/height);
+					
 			}
-            
 			targetIndex = self.limitIndex(targetIndex);
+			
 			self.autoMove(targetIndex);
 			if (self.callback) {
 				var choseId = self.index + self.offset;
@@ -376,15 +382,12 @@
 			if (self.autoPlay) self._autoPlay()
 		},
 		transitionEnd: function (e) {
-			var self = this;
-			this.filterPagination(this.index)
+			this.paginationList && this.filterPagination(this.index)
 		},
 		autoMove: function (targetIndex) {
 			
 			var self = this;
-			var style = this.element.style;
-			
-			//var width = self.childWidth;
+			var style = this.element.style;			
 			style.webkitTransition = "-webkit-transform "+self.speed+"ms";
 			if (self.orientation == 1) style.MozTransform = style.webkitTransform = 'translate3d(' + (-targetIndex * self.childWidth) + 'px,0,0)';
 			if (self.orientation == 2) style.MozTransform = style.webkitTransform = 'translate3d(0,' + (-targetIndex * self.childHeight) + 'px,0)';
@@ -405,7 +408,8 @@
 		},
 		limitIndex: function (targetIndex) {
 			var self = this;
-			if (this.autoMove && targetIndex == this.length) targetIndex = this.autoMoveResetTargetIndex()
+			
+			if (this.autoPlay && targetIndex == this.length) targetIndex = this.autoMoveResetTargetIndex()
 			if (!self.limitBorder) {
 				if (targetIndex < -self.offset) targetIndex = -self.offset;	
 				else if (targetIndex > self.length - 1 - self.offset) targetIndex = self.length - 1 - self.offset;
@@ -414,6 +418,7 @@
 				if (targetIndex < 0) targetIndex = 0;
 				else if ((targetIndex > self.length - self.showNum + self.focusIndex)) targetIndex = self.length -(self.showNum - self.focusIndex);
 			}
+			
 			targetIndex = targetIndex - self.focusIndex;
 			return targetIndex;
 		},
@@ -444,7 +449,7 @@
 			clearInterval(this.autoPlayId)
 		},
 		_autoPlay: function () {
-			this.autoPlayId = setInterval(function () {this.move(this.index + 1)}.bind(this), 2000)
+			this.autoPlayId = setInterval(function () {this.move(this.index + 1)}.bind(this), this.duration)
 		},
 		filterPagination: function (index) {
 			var curPaginationIndex = this.moveDomArr[index];
@@ -463,6 +468,7 @@
 			}.bind(this))			
 		}
 		if (typeof args === 'string' || typeof args === 'number') this.msg = args;
+		this.parentNode = this.parentNode || document.body;
 		this.init()
 	}
 	showPrompt.prototype = {
@@ -476,14 +482,14 @@
 			this._container = document.createElement('div');
 			this._container.className = this.className ? this.className + ' widget-prompt' : 'widget-prompt';
 			this._container.innerHTML = this.msg;	
-			document.body.appendChild(this._container)
+			this.parentNode.appendChild(this._container)
 			this.promptTimer = setTimeout(function(){
 					this.destory();
 					if (this.cb) this.cb()
-			}.bind(this),3000);
+			}.bind(this),this.duration || 3000);
 		},
 		destory: function () {
-			this._container.parentNode.removeChild(this._container)
+			this._container && this._container.parentNode && this._container.parentNode.removeChild(this._container)
 			this._container = null;
 		}
 	}
@@ -498,6 +504,7 @@
 								'<div class="spinner"></div>'
 					
 		this.html = this.html || tpl;
+		this.parentNode = this.parentNode || document.body;
 		return this;
 	}
 	Loading.prototype = {
@@ -507,9 +514,10 @@
 				this._container = document.createElement('div');
 				this._container.innerHTML = this.html;
 				this._container.className = this.className ? this.className + ' widget-loading' : 'widget-loading';
-				document.body.appendChild(this._container)
+				this.parentNode.appendChild(this._container)
 			} 
 			this._container.style.display = 'block';
+			return this;
 		},
 		end: function () {
 			this._container && (this._container.style.display = 'none');

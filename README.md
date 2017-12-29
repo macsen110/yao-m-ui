@@ -5,6 +5,8 @@
 ```bash
 npm i yao-m-ui --save
 
+import 'yao-m-ui/widget.css'
+
 import * as ui form 'yao-m-ui' 
 
 ui.Dialog({})
@@ -15,6 +17,8 @@ ui.Dialog({})
 ```bash
 npm i yao-m-ui --save
 
+require('yao-m-ui/widget.css')
+
 var ui = require('yao-m-ui')
 
 ui.Dialog({})
@@ -24,9 +28,11 @@ ui.Dialog({})
 
 ```js
 
+<link rel="stylesheet" href="./widget.css">
+
 <script src="./index.js"></script>
 
-window.yaoMUI.Dialog({})
+window.YAO_M_UI.Dialog({})
 
 ```
 
@@ -78,9 +84,13 @@ ui.easyMove(element, options) 滑动组件,类似于swiper
 - `element` 滚动目标dom 节点
 
 - options 滑动的配置信息
+    - `autoPaly` 是否自动播放,多用于类似swiper自动轮播
+
     - `parentEle` 手指touch目标元素 默认为 element
 
-    - `focusIndex` 默认定位到那个item
+    - `index` 默认定位到那个item的下标
+
+    - `focusIndex` 指定当前场景下某个位置的focus下标
 
     - `speed` 滚动速率
 
@@ -96,17 +106,46 @@ ui.easyMove(element, options) 滑动组件,类似于swiper
 
     - `callback` 动画完成后的回调
 
-    - `autoMove` 是否需要自动播放
     - `paginationList` 底部导航dom,当前滚动下标对应的class为active
 
 
 ### Tab切换 
 ui.tab(options)
-* `tabNavContainer`  //default as '.tab-nav-container'
+* `tabNavContainer`  tab 导航标签的父元素
+//default as '.tab-nav-container'
 
-* `tabConContainer`  //default as '.tab-con-container'
+* `tabConContainer`  tab 内容标签的父元素
+//default as '.tab-con-container'
 
+* `activeClass`   当前选中nav标签和content标签的激活class 类名
+//default as 'on'
+
+* `tabNavItems`  tab 导航标签 
+//例如 document.querySelectorAll('.nav-items'), 
+不写的话默认取tabNavContainer的子元素
+
+* `tabConItems`  tab 内容标签 
+//例如 document.querySelectorAll('.nav-con-items') 
+不写的话默认取tabConContainer子元素 
+
+* `callback` 
+点击切换的回调。其中，上下文 this指点击元素DOM对象。默认参数为当前点击的索引值
 使用了事件代理,异步添加的nav 也会默认增加切换事件
+
+
+### loading
+ui.Loading(options)
+
+* `className` 根组件元素的className
+
+* `html` loading 元素的html代码片段
+
+* `parentNode` 承载该组件的父元素
+
+* `start` loading.start() loading开始
+
+* `end` loading.end() loading结束
+ 
 
 Demo地址 
 Contact 
