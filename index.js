@@ -37,6 +37,7 @@
 		this.curIdex = this.curIdex || 0;
 		this.activeClass = this.activeClass || 'on'
 		this.init()
+		return this;
 	}
 
 	TabWidget.prototype = {
@@ -222,7 +223,8 @@
 			this.childHeight = options.childHeight || this.child.clientHeight;
 			this.parentHeight = options.parentHeight || this.childHeight * this.length;
 		}
-		setTimeout(this.init.bind(this), 1000);
+		setTimeout(this.init.bind(this), 100);
+		return this;
 	}
 	easyMove.prototype = {
 		constructor: easyMove,
@@ -470,6 +472,7 @@
 		if (typeof args === 'string' || typeof args === 'number') this.msg = args;
 		this.parentNode = this.parentNode || document.body;
 		this.init()
+		return this;
 	}
 	showPrompt.prototype = {
 		constructor: showPrompt,
